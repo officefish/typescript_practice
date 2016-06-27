@@ -18,7 +18,10 @@
   "homepage": "https://github.com/officefish/typescript_practice#readme",
   "devDependencies": {
     "gulp": "^3.9.1",
-    "gulp-typescript": "^2.13.6"
+    "gulp-tslint": "^5.0.0",
+    "gulp-typescript": "^2.13.6",
+    "tslint": "^3.12.1",
+    "typescript": "^1.8.10"
   },
   "dependencies": {
     "jquery": "^3.0.0"
