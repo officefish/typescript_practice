@@ -1,0 +1,17 @@
+{
+  "name": "typescript_practice",
+  "description": "studing typescript",
+  "main": "index.js",
+  "authors": [
+    "Sergey <inozemcev.smg@yandex.ru> (http://sergeyinozemcev.com/)"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/officefish/typescript_practice",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
