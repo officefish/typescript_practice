@@ -13,5 +13,11 @@
     "bower_components",
     "test",
     "tests"
-  ]
+  ],
+  "dependencies": {
+    "jquery": "^3.0.0"
+  },
+  "devDependencies": {
+    "jasmine-core": "jasmine#^2.4.1"
+  }
 }
