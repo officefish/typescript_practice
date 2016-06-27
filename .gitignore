@@ -23,6 +23,9 @@ bower_components
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 build/Release
 
+# VS Code IDE
+.vscode
+
 # Compiler generated
 source/**/*.js
 test/**/*.js
