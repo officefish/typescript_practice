@@ -15,5 +15,11 @@
   "bugs": {
     "url": "https://github.com/officefish/typescript_practice/issues"
   },
-  "homepage": "https://github.com/officefish/typescript_practice#readme"
+  "homepage": "https://github.com/officefish/typescript_practice#readme",
+  "devDependencies": {
+    "gulp-typescript": "^2.13.6"
+  },
+  "dependencies": {
+    "jquery": "^3.0.0"
+  }
 }
