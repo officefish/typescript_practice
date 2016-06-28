@@ -17,11 +17,15 @@
   },
   "homepage": "https://github.com/officefish/typescript_practice#readme",
   "devDependencies": {
+    "browserify": "^13.0.1",
     "gulp": "^3.9.1",
+    "gulp-sourcemaps": "^1.6.0",
     "gulp-tslint": "^5.0.0",
     "gulp-typescript": "^2.13.6",
+    "gulp-uglify": "^1.5.4",
     "tslint": "^3.12.1",
-    "typescript": "^1.8.10"
+    "typescript": "^1.8.10",
+    "vinyl-transform": "^1.0.0"
   },
   "dependencies": {
     "jquery": "^3.0.0"
