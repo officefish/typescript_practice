@@ -7,10 +7,13 @@
 const config = require('./gulp.config')();
 
 const gulp = require('gulp');
+const del = require('del');
 const $ = require('gulp-load-plugins')({ lazy: true });
 const tslintStylish = require('tslint-stylish');
 const args = require('yargs').argv;
-
+const exec = require('child_process').exec;
+const tsc = require('gulp-typescript');
+const browserSync = require('browser-sync');
 
 
 
@@ -65,6 +68,70 @@ gulp.task('vet:es5', function(){
  */
 gulp.task('scripts-vet', ['vet:es5', 'vet:typescript'], function () {
 });
+
+/**
+ * Remove generated files
+ * @return {Stream}
+ */
+gulp.task('clean:generated', function () {
+
+    log('Cleaning generated files: ' + $.util.colors.blue(config.ts.out));
+    return del(config.ts.out);
+});
+
+
+/**
+ * Compile TypeScript
+ */
+gulp.task('typescript-compile', ['vet:typescript', 'clean:generated'], function () {
+
+    log('Compiling TypeScript');
+    //exec('node_modules/typescript/bin/tsc -p src');
+    var tsProject = tsc.createProject("src/tsconfig.json");
+   
+    return gulp.src(
+            config.ts.files
+         )
+        .pipe(tsc(tsProject))
+        .pipe($.sourcemaps.init())
+        .pipe($.sourcemaps.write(".map"))
+        .pipe(gulp.dest(config.ts.out));
+});
+
+/**
+ * Watch and compile TypeScript
+ */
+gulp.task('typescript-watch', ['typescript-compile'], function () {
+     return gulp.watch(config.ts.files, ['typescript-compile']);
+});
+
+gulp.task('typescript-test-watch', ['typescript-compile'], function () {
+     return gulp.watch(config.ts.files, ['typescript-compile'])
+        .on('change', browserSync.reload);
+});
+
+/**
+ * Test while watching TypeScript
+ */
+gulp.task('typescript-test', ['typescript-test-watch'], function () {
+     var options = {
+        port: 3000,
+        server: './',
+        files: ['./dist/**/*.js',
+                './dist/**/*.spec.js',
+                '!./dist/**/*.js.map'],
+        logFileChanges: true,
+        logLevel: 'info',
+        logPrefix: 'spec-runner',
+        notify: true,
+        reloadDelay:1000,
+        startPath: 'SpecRunner.html'
+    };
+    browserSync.init(options);
+});
+
+
+
 
 /**
  * Log a message or series of messages using chalk's blue color.

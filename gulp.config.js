@@ -67,10 +67,11 @@ module.exports = function () {
             // Folders
             src: tsSrc,
             out: jsSrc,
-            
+                       
             // Source files
             files: [
-                tsSrc + tsSrcFiles
+                tsSrc + tsSrcFiles,
+                tsSrc + tsDefFiles
             ],
             
             // Type definitions
