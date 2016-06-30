@@ -1,9 +1,18 @@
 {
     "compilerOptions": {
         "target": "es5",
+        "sourceMap": true,
         "module": "commonjs",
+        "moduleResolution": "node",
+        "isolatedModules": false,
+        "jsx": "react",
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
         "declaration": false,
-        "noImplicitAny": true,
-        "removeComments": true
+        "noImplicitAny": false,
+        "removeComments": true,
+        "noLib": false,
+        "preserveConstEnums": true,
+        "suppressImplicitAnyIndexErrors": true
     }
 }

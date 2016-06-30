@@ -3,17 +3,25 @@ module.exports = function () {
     // Local variables
     var root = './';
     var util = root + 'util/';
-    var src = './src/';
-    var tsSrc = src;
-    var jsSrc = root + 'dist/';
-    var jsRoot = root + '*.js';
-    var jsSrcFiles = '**/*.js';
-    var jsModuleFiles = '**/*.module.js';
-    var jsMapFiles = '**/*.js.map';
-    var jsSpecFiles = '**/*.spec.js';
-    var tsSrcFiles = '**/*.ts';
-    var tsDefFiles = '**/*.d.ts';
-    var typings = './typings/local/';
+    var src = root + 'source/';
+    var tsSrc = src +'entities/';
+    var tsDefSrc = src + 'interfaces/';
+    var tsTestSrc = root + 'test/';
+    var jsRoot = root + 'dev/';
+    var jsDev =  jsRoot + 'source/';
+    var testJsDev = jsRoot + 'test/';
+    var jsDevFilesPattern = '**/*.js';
+    var jsModuleFilesPattern = '**/*.module.js';
+    var jsMapFilesPattern = '**/*.js.map';
+    var jsTestFilesPattern = '**/*.test.js';
+    var jsJasmineTestFilesPattern = '**/*.jasmine.test.js';
+    var tsSrcFilesPattern = '**/*.ts';
+    var tsDefFilesPattern = '**/*.d.ts';
+    var tsTestFilesPattern = '**/*.test.ts';
+    var tsJasmineTestFilesPattern = '**/*.jasmine.test.ts';
+    var typingsDefSrc = './typings'; 
+    var typingsDefFilePattern =  '/tsd.d.ts';
+    var typings = typingsDefSrc + typingsDefFilePattern;
     var report = './report/';
     var specRunnerFile = 'SpecRunner.html';
 
@@ -41,48 +49,70 @@ module.exports = function () {
         // JavaScript settings
         js: {
             root: jsRoot,
-            dir: jsSrc,
-            src: [
-                jsSrc + jsSrcFiles,
-                '!' + jsSrc + jsMapFiles,
-                '!' + jsSrc + jsSpecFiles
+            files: [
+                jsDev + jsDevFilesPattern,
+                '!' + jsDev + jsMapFilesPattern,
             ],
-            order: [
-                jsModuleFiles,
-                jsSrcFiles
+            onlySrcFiles: [
+                jsDev + jsDevFilesPattern
             ],
-            specs: [
-                jsSrc + jsSpecFiles
+            maps: jsDev + jsMapFilesPattern,
+            tests: [
+                testJsDev + jsTestFilesPattern,
+                '!'+ testJsDev + jsJasmineTestFilesPattern
             ],
-            maps: jsSrc + jsMapFiles,
-            srcSpecs: [
-                jsSrc + jsSrcFiles,
-                '!' + jsSrc + jsMapFiles,
-                jsSrc + jsSpecFiles
-            ]
+            jasmineTests: [
+                testJsDev + jsJasmineTestFilesPattern
+            ],
+            allTests: [
+                testJsDev + jsTestFilesPattern,
+                testJsDev + jsJasmineTestFilesPattern
+            ],
+            srcAndTestFiles: [
+                jsDev + jsDevFilesPattern,
+                testJsDev + jsTestFilesPattern,
+                testJsDev + jsJasmineTestFilesPattern
+            ],
         },
         
         // TypeScript settings
         ts: {
             // Folders
-            src: tsSrc,
-            out: jsSrc,
+            source: tsSrc,
+            out: jsDev,
+            testOut: testJsDev,
                        
             // Source files
             files: [
-                tsSrc + tsSrcFiles,
-                tsSrc + tsDefFiles
+                src + tsSrcFilesPattern,
+                tsDefSrc + tsDefFilesPattern
+            ],
+            srcFilesAndTypings: [
+                src + tsSrcFilesPattern,
+                tsDefSrc + tsDefFilesPattern,
+                typings
+            ],
+            tests: [
+                tsTestSrc + tsTestFilesPattern,
+                tsTestSrc + tsJasmineTestFilesPattern,
+                typings
+            ],
+            allFiles: [
+                tsSrc + tsSrcFilesPattern,
+                tsDefSrc + tsDefFilesPattern,
+                tsTestSrc + tsTestFilesPattern,
+                tsTestSrc + tsJasmineTestFilesPattern
             ],
             
             // Type definitions
-            typings: typings,
+            typings: typingsDefSrc,
             
             // Compiled files
             outFiles: [
-                jsSrc + jsSrcFiles,
-                jsSrc + jsMapFiles,
-                '!' + jsSrc + jsSpecFiles,
-                typings + tsDefFiles
+                jsDev + jsDevFilesPattern,
+                jsDev + jsMapFilesPattern,
+                testJsDev + jsTestFilesPattern,
+                testJsDev + jsJasmineTestFilesPattern
             ]
         },
 
@@ -94,49 +124,8 @@ module.exports = function () {
             logPrefix: 'spec-runner',
         },
         
-        // Inject imports settings
-        imports: {
-            template: util + 'system.template.js',
-            script: util + 'system.imports.js'
-        }
+       
     };
     
-    // Karma settings
-    config.karma = getKarmaOptions();
-
     return config;
-    
-    ////////////////
-    
-    function getKarmaOptions() {
-        var options = {
-            files: [].concat(
-                'src/**/*.spec.ts'
-                ),
-            exclude: [],
-            systemjs: {
-                config: {
-                    paths: {
-                        'typescript': 'node_modules/typescript/lib/typescript.js',
-                        'systemjs': 'node_modules/systemjs/dist/system.js',
-                        'system-polyfills': 'node_modules/systemjs/dist/system-polyfills.js',
-                        'es6-module-loader': 'node_modules/es6-module-loader/dist/es6-module-loader.js',
-                        'phantomjs-polyfill': 'node_modules/phantomjs-polyfill/bind-polyfill.js'
-                    },
-                    packages: {
-                        'src': {
-                            defaultExtension: 'ts'
-                        }
-                    },
-                    transpiler: 'typescript'
-                },
-                serveFiles: [
-                    'src/**/*.ts'
-                ]
-            },
-            preprocessors: [],
-        };
-        
-        return options;
-    }
 };
