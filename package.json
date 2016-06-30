@@ -4,7 +4,7 @@
   "description": "typescript studing",
   "main": "index.js",
   "scripts": {
-    "test": "gulp typescript-test"
+    "test": "gulp"
   },
   "repository": {
     "type": "git",
