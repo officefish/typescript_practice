@@ -172,12 +172,53 @@ gulp.task('test',function (callback) {
     );
 });
 
+
+
+//******************************************************************************
+//* BUNDLE
+//******************************************************************************
+
+gulp.task("bundle", function() {
+  
+    var bundler = browserify({
+        debug: true,
+        standalone : config.library //libraryName
+    });
+    
+    return bundler.add(config.js.main)
+        .bundle()
+        .pipe(source(config.js.outputFile))
+        .pipe(buffer())
+        .pipe($.sourcemaps.init({ loadMaps: true }))
+        .pipe($.uglify())
+        .pipe($.sourcemaps.write('./'))
+        .pipe(gulp.dest(config.js.root));
+});
+
+//******************************************************************************
+//* DEV SERVER
+//******************************************************************************
+gulp.task("watch", ["default"], function () {
+    
+    browserSync.init({
+        server: "."
+    });
+    
+    gulp.watch(config.ts.files, ["default"]);
+    gulp.watch(config.js.output).on('change', browserSync.reload); 
+});
+
+//******************************************************************************
+//* DEFAULT
+//******************************************************************************
+
 gulp.task('default', function (callback) {
     runSequence(
         'clean:ts:generated',
         'vet:ts:tslint',
         'build',
         'test',
+        'bundle',
         callback
     );    
 });

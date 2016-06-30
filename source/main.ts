@@ -3,4 +3,4 @@ import Greeter from "./entities/greeter";
 
 let greeter = new Greeter("world!");
 let msg = greeter.greet();
-$("body").html(`<h1>${msg}</h1>`);
+$("body").html(`<h1>${msg}</h1><h3>${msg}</h3>`);

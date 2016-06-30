@@ -25,7 +25,15 @@ module.exports = function () {
     var report = './report/';
     var specRunnerFile = 'SpecRunner.html';
 
+    var library = "myapp";
+    var mainJsFilePath = "dev/source/main.js";
+    var jsOutputFileName = library + ".min.js";
+    var jsOutputFilePattern = jsRoot + "*.js";
+
     var config = {
+
+        //
+        library: library,
 
         // Root folder
         root: root,
@@ -48,7 +56,10 @@ module.exports = function () {
         
         // JavaScript settings
         js: {
+            main: mainJsFilePath,
             root: jsRoot,
+            outputFile: jsOutputFileName,
+            output: jsOutputFilePattern,
             files: [
                 jsDev + jsDevFilesPattern,
                 '!' + jsDev + jsMapFilesPattern,
