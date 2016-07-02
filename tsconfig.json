@@ -14,5 +14,5 @@
         "noLib": false,
         "preserveConstEnums": true,
         "suppressImplicitAnyIndexErrors": true
-    }
+        }
 }

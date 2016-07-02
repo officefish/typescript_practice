@@ -24,6 +24,9 @@ const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const source = require("vinyl-source-stream");
 
+const bower_components    = require('bower-files')();
+const bower_components_js_pattern = bower_components.ext('js').files
+
 
 /**
  * List the available gulp tasks
@@ -111,6 +114,7 @@ gulp.task('build:application', function () {
     log('Output folder:' + $.util.colors.blue(config.ts.out));
 
     var application = tsc.createProject("tsconfig.json");
+    //var application = tsc.createProject("tsJasmineConfig.json");
     return gulp.src(config.ts.srcFilesAndTypings)
         .pipe(tsc(application))
         .js.pipe(gulp.dest(config.ts.out));
@@ -122,6 +126,7 @@ gulp.task('build:tests', function () {
     log('Output folder:' + $.util.colors.blue(config.ts.testOut));
 
     var tests = tsc.createProject("tsconfig.json");
+    //var tests = tsc.createProject("tsJasmineConfig.json");
     return gulp.src(config.ts.tests)
         .pipe(tsc(tests))
         .js.pipe(gulp.dest(config.ts.testOut));
@@ -186,6 +191,7 @@ gulp.task("bundle", function() {
     });
     
     return bundler.add(config.js.main)
+       
         .bundle()
         .pipe(source(config.js.outputFile))
         .pipe(buffer())
@@ -208,9 +214,37 @@ gulp.task("watch", ["default"], function () {
     gulp.watch(config.js.output).on('change', browserSync.reload); 
 });
 
+
+
+gulp.task("sprint:watch", ["sprint"], function () {
+    
+    browserSync.init({
+        server: "."
+    });
+    
+    gulp.watch(config.ts.files, ["sprint"]);
+    gulp.watch(config.js.output).on('change', browserSync.reload); 
+});
+
+gulp.task("server", function () {
+    
+    browserSync.init({
+        server: "."
+    });
+});
+
 //******************************************************************************
 //* DEFAULT
 //******************************************************************************
+
+gulp.task('sprint', function (callback) {
+    runSequence(
+        'clean:ts:generated',
+        'build:application',
+        'bundle',
+        callback
+    );    
+});
 
 gulp.task('default', function (callback) {
     runSequence(

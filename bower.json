@@ -15,9 +15,11 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "^3.0.0"
+    "jquery": "^3.0.0",
+    "awayjs-full": "4bc2db5"
   },
   "devDependencies": {
-    "jasmine-core": "jasmine#^2.4.1"
+    "jasmine-core": "jasmine#^2.4.1",
+    "awayjs-full": "4bc2db5"
   }
 }
