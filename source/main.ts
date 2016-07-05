@@ -1,10 +1,20 @@
 import * as awayjs from "awayjs-full";
 
+import Field from "./entities/field";
+import Bresenham from "./algorithm/bresenham";
+
+
+
 class Away3D {
+
+    
+
     // engine variables
     private _view: awayjs.View;
+
     // private cameraController: awayjs.HoverController;
     private _cameraController: awayjs.HoverController;
+
     // navigation variables
     private _timer: awayjs.RequestAnimationFrame;
     private _time: number = 0;
@@ -14,15 +24,24 @@ class Away3D {
     private _lastMouseX: number;
     private _lastMouseY: number;
 
-    //light objects
+    // material objects
+    private _groundMaterial: awayjs.MethodMaterial;
+
+    // light objects
     private _light: awayjs.DirectionalLight;
     private _lightPicker: awayjs.StaticLightPicker;
     private _direction: awayjs.Vector3D;
 
-    //scene objects
+    // scene objects
     private _loader: awayjs.Loader;
-    private _plane: awayjs.PrimitivePlanePrefab;
-    private _ground: awayjs.DisplayObject;
+    private _cubePreflab: awayjs.PrimitiveCubePrefab;
+    private _planePreflab: awayjs.PrimitivePlanePrefab;
+    private _ground: awayjs.DisplayObjectContainer;
+
+    private _field: Field;
+    private _bresenharm:Bresenham;
+
+    
 
     constructor() {
         this.init();
@@ -59,6 +78,18 @@ class Away3D {
     }
 
     /**
+	 * Initialise the materials
+	 */
+    private initMaterials(): void {
+        this._groundMaterial = new awayjs.MethodMaterial();
+        this._groundMaterial.shadowMethod = new awayjs.ShadowSoftMethod(this._light , 10 , 5 );
+        this._groundMaterial.shadowMethod.epsilon = 0.2;
+        this._groundMaterial.lightPicker = this._lightPicker;
+        // this._groundMaterial.specular = 0;
+		// this._groundMaterial.mipmap = false;
+    }
+
+    /**
 	 * Initialise the scene objects
 	 */
     private initObjects(): void {
@@ -67,12 +98,45 @@ class Away3D {
         // this._loader.transform.scale = new awayjs.Vector3D(300, 300, 300);
         // this._loader.z = -200;
         // this._view.scene.addChild(this._loader);
+        // this._planePreflab = new awayjs.PrimitivePlanePrefab(null, "triangle", 1000, 1000);
+        this._cubePreflab = new awayjs.PrimitiveCubePrefab(new awayjs.BasicMaterial(), "triangle", 100, 10, 100);
 
-        this._plane = new awayjs.PrimitivePlanePrefab(null, "triangle", 1000, 1000);
-        this._ground = this._plane.getNewObject();
+        this._ground = new awayjs.DisplayObjectContainer(); // <awayjs.DisplayObjectContainer> this._planePreflab.getNewObject();
         // this._ground.material = this._groundMaterial;
         this._ground.castsShadows = false;
         this._view.scene.addChild(this._ground);
+
+        this._field = new Field();
+            // eval("this._item.material = new awayjs.BasicMaterial().style.color = 0xFF0000");
+        this._field.initItems(10, 10);
+        this._ground.addChild(this._field);
+
+        this._bresenharm = new Bresenham();
+        console.log (this._bresenharm.generatePoints(0 , 0 , 9 , 9));
+        console.log (this._bresenharm.generatePoints(0 , 0 , 99 , 99));
+        console.log (this._bresenharm.generatePoints(5 , 5 , 0 , 0));
+        console.log (this._bresenharm.generatePoints(55 , 55 , 0 , 0));
+
+
+
+
+        // let item2: awayjs.DisplayObject = <awayjs.DisplayObject> this._cubePreflab.getNewObject();
+        // item2.x = 100;
+        // this._ground.addChild(item2);
+
+
+
+        /*
+        let item: awayjs.DisplayObject;
+        for (let i: number = 0; i < 10; i ++) {
+            for (let j: number = 0; j < 10; j ++) {
+                 item = 
+                 item.x = 101 * i;
+                 item.y = 101 * j;
+                 // this._ground.addChild(item);
+            }
+        }
+        */
     }
 
     /**
@@ -124,9 +188,6 @@ class Away3D {
             this._cameraController.tiltAngle = 0.3 * (event.clientY - this._lastMouseY) + this._lastTiltAngle;
         }
     }
-
-
-
 
     /**
 	 * stage listener for resize events
