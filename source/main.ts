@@ -1,7 +1,6 @@
 import * as awayjs from "awayjs-full";
 
 import Field from "./entities/field";
-import Bresenham from "./algorithm/bresenham";
 
 
 
@@ -39,9 +38,10 @@ class Away3D {
     private _ground: awayjs.DisplayObjectContainer;
 
     private _field: Field;
-    private _bresenharm:Bresenham;
-
     
+    private shiftPressed: boolean = false;
+    private ctrlPressed: boolean = false;
+
 
     constructor() {
         this.init();
@@ -108,17 +108,8 @@ class Away3D {
 
         this._field = new Field();
             // eval("this._item.material = new awayjs.BasicMaterial().style.color = 0xFF0000");
-        this._field.initItems(10, 10);
+        this._field.initItems(20, 5, 20, 50, 50);
         this._ground.addChild(this._field);
-
-        this._bresenharm = new Bresenham();
-        console.log (this._bresenharm.generatePoints(0 , 0 , 9 , 9));
-        console.log (this._bresenharm.generatePoints(0 , 0 , 99 , 99));
-        console.log (this._bresenharm.generatePoints(5 , 5 , 0 , 0));
-        console.log (this._bresenharm.generatePoints(55 , 55 , 0 , 0));
-
-
-
 
         // let item2: awayjs.DisplayObject = <awayjs.DisplayObject> this._cubePreflab.getNewObject();
         // item2.x = 100;
@@ -153,6 +144,9 @@ class Away3D {
         document.onmousedown = (event: MouseEvent) => this.onMouseDown(event);
         document.onmouseup = (event: MouseEvent) => this.onMouseUp(event);
         document.onmousemove = (event: MouseEvent) => this.onMouseMove(event);
+
+        document.onkeydown = (event: KeyboardEvent) => this.onKeyDown(event);
+        document.onkeyup = (event: KeyboardEvent) => this.onKeyUp(event);
     }
 
     private onEnterFrame(dt: number): void {
@@ -163,6 +157,50 @@ class Away3D {
 
         this._view.render();
     }
+
+    private onKeyDown(event: KeyboardEvent): void {
+        switch (event.keyCode) {
+            case 17: {
+                // ctrl;
+                this.ctrlPressed = true;
+                break;
+            }
+            case 16: {
+                // shift;
+                this.shiftPressed = true;
+                break;
+            }
+            case 8: {
+                // backspace
+                this._field.clear();
+                break;
+            }
+            case 46: {
+                this._field.clear();
+                break;
+                // delete
+            }
+        }
+
+        this._field.updateKeys(this.shiftPressed, this.ctrlPressed);
+    }
+
+    private onKeyUp(event: KeyboardEvent): void {
+        switch (event.keyCode) {
+            case 17: {
+                // ctrl;
+                this.ctrlPressed = false;
+                break;
+            }
+            case 16: {
+                // shift;
+                this.shiftPressed = false;
+                break;
+            }
+        }
+        this._field.updateKeys(this.shiftPressed, this.ctrlPressed);
+    }
+
 
     /**
 	 * Mouse down listener for navigation

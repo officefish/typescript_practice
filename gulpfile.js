@@ -1,7 +1,7 @@
 /*jshint esversion: 6 */
-(function () {
-   'use strict';
-   // this function is strict...
+(function() {
+    'use strict';
+    // this function is strict...
 }());
 
 
@@ -13,7 +13,9 @@ const config = require('./gulp.config')();
 
 const gulp = require('gulp');
 const del = require('del');
-const $ = require('gulp-load-plugins')({ lazy: true });
+const $ = require('gulp-load-plugins')({
+    lazy: true
+});
 const tslintStylish = require('tslint-stylish');
 const args = require('yargs').argv;
 const exec = require('child_process').exec;
@@ -24,7 +26,7 @@ const browserify = require('browserify');
 const buffer = require('vinyl-buffer');
 const source = require("vinyl-source-stream");
 
-const bower_components    = require('bower-files')();
+const bower_components = require('bower-files')();
 const bower_components_js_pattern = bower_components.ext('js').files
 
 
@@ -42,7 +44,7 @@ gulp.task('help', $.taskListing.withFilters(/:/));
  * vet typescript code
  * @return {Stream}
  */
-gulp.task('vet:ts:tslint', function () {
+gulp.task('vet:ts:tslint', function() {
 
     log('Analyzing typescript code with TSLint');
     log('source: ' + config.ts.allFiles);
@@ -62,7 +64,7 @@ gulp.task('vet:ts:tslint', function () {
  * --verbose
  * @return {Stream}
  */
-gulp.task('vet:js:jshint', function(){
+gulp.task('vet:js:jshint', function() {
 
     log('Analyzing ES5 code with JSHint');
     log('source:' + config.js.srcAndTestFiles);
@@ -71,12 +73,13 @@ gulp.task('vet:js:jshint', function(){
         .src(config.js.srcAndTestFiles)
         .pipe($.if(args.verbose, $.print()))
         .pipe($.jshint())
-        .pipe($.jshint.reporter('jshint-stylish', {verbose: true}))
+        .pipe($.jshint.reporter('jshint-stylish', {
+            verbose: true
+        }))
         .pipe($.jshint.reporter('fail'));
 });
 
-gulp.task('vet:scripts', ['vet:js:jshint', 'vet:ts:tslint'], function () {
-});
+gulp.task('vet:scripts', ['vet:js:jshint', 'vet:ts:tslint'], function() {});
 
 
 //******************************************************************************
@@ -87,7 +90,7 @@ gulp.task('vet:scripts', ['vet:js:jshint', 'vet:ts:tslint'], function () {
  * Remove generated files
  * @return {Stream}
  */
-gulp.task('clean:ts:generated', function () {
+gulp.task('clean:ts:generated', function() {
 
     log('Cleaning generated files');
     log('target: ' + $.util.colors.blue(config.js.root));
@@ -95,12 +98,12 @@ gulp.task('clean:ts:generated', function () {
     return del(config.js.root); // config.js.dev
 });
 
-gulp.task('clean:temp', function () {
-    
+gulp.task('clean:temp', function() {
+
     log('Cleaning temp files');
     log('target: ' + $.util.colors.blue(config.temp));
 
-    return del(config.temp); 
+    return del(config.temp);
 });
 
 
@@ -108,8 +111,8 @@ gulp.task('clean:temp', function () {
 //* BUILD
 //******************************************************************************
 
-gulp.task('build:application', function () {
-    log('Build typescript files'); 
+gulp.task('build:application', function() {
+    log('Build typescript files');
     log('source: ' + $.util.colors.blue(config.ts.srcFilesAndTypings));
     log('Output folder:' + $.util.colors.blue(config.ts.out));
 
@@ -120,9 +123,9 @@ gulp.task('build:application', function () {
         .js.pipe(gulp.dest(config.ts.out));
 });
 
-gulp.task('build:tests', function () {
+gulp.task('build:tests', function() {
     log('Build typescript test files');
-    log ('source: ' + $.util.colors.blue(config.ts.tests));
+    log('source: ' + $.util.colors.blue(config.ts.tests));
     log('Output folder:' + $.util.colors.blue(config.ts.testOut));
 
     var tests = tsc.createProject("tsconfig.json");
@@ -141,8 +144,8 @@ gulp.task("build", function(cb) {
 //* TEST
 //******************************************************************************
 
-gulp.task('coverage:report:istanbul', function () {
-    
+gulp.task('coverage:report:istanbul', function() {
+
     log('Code Coverage Report. Istanbul');
     log('source: ' + config.js.allTests);
 
@@ -152,23 +155,25 @@ gulp.task('coverage:report:istanbul', function () {
 })
 
 gulp.task('test:jasmine', function() {
-   log('Test typescript code with Jasmine');
-   log('source: ' + config.js.jasmineTests);
-   
-   return gulp.src(config.js.jasmineTests)
-      .pipe($.jasmine());
+    log('Test typescript code with Jasmine');
+    log('source: ' + config.js.jasmineTests);
+
+    return gulp.src(config.js.jasmineTests)
+        .pipe($.jasmine());
 });
 
 gulp.task("test:mocha", function() {
-    
+
     log('Test typescript code with Mocha');
     log('source: ' + config.js.tests);
-   
+
     return gulp.src(config.js.tests)
-        .pipe($.mocha({ui: 'bdd'}))
+        .pipe($.mocha({
+            ui: 'bdd'
+        }))
 });
 
-gulp.task('test',function (callback) {
+gulp.task('test', function(callback) {
     runSequence(
         'coverage:report:istanbul',
         'test:jasmine',
@@ -184,18 +189,20 @@ gulp.task('test',function (callback) {
 //******************************************************************************
 
 gulp.task("bundle", function() {
-  
+
     var bundler = browserify({
         debug: true,
-        standalone : config.library //libraryName
+        standalone: config.library //libraryName
     });
-    
+
     return bundler.add(config.js.main)
-       
-        .bundle()
+
+    .bundle()
         .pipe(source(config.js.outputFile))
         .pipe(buffer())
-        .pipe($.sourcemaps.init({ loadMaps: true }))
+        .pipe($.sourcemaps.init({
+            loadMaps: true
+        }))
         .pipe($.uglify())
         .pipe($.sourcemaps.write('./'))
         .pipe(gulp.dest(config.js.root));
@@ -204,30 +211,30 @@ gulp.task("bundle", function() {
 //******************************************************************************
 //* DEV SERVER
 //******************************************************************************
-gulp.task("watch", ["default"], function () {
-    
+gulp.task("watch", ["default"], function() {
+
     browserSync.init({
         server: "."
     });
-    
+
     gulp.watch(config.ts.files, ["default"]);
-    gulp.watch(config.js.output).on('change', browserSync.reload); 
+    gulp.watch(config.js.output).on('change', browserSync.reload);
 });
 
 
 
-gulp.task("sprint:watch", ["sprint"], function () {
-    
+gulp.task("sprint:watch", ["sprint"], function() {
+
     browserSync.init({
         server: "."
     });
-    
+
     gulp.watch(config.ts.files, ["sprint"]);
-    gulp.watch(config.js.output).on('change', browserSync.reload); 
+    gulp.watch(config.js.output).on('change', browserSync.reload);
 });
 
-gulp.task("server", function () {
-    
+gulp.task("server", function() {
+
     browserSync.init({
         server: "."
     });
@@ -237,16 +244,17 @@ gulp.task("server", function () {
 //* DEFAULT
 //******************************************************************************
 
-gulp.task('sprint', function (callback) {
+gulp.task('sprint', function(callback) {
     runSequence(
         'clean:ts:generated',
         'build:application',
         'bundle',
+        'server',
         callback
-    );    
+    );
 });
 
-gulp.task('default', function (callback) {
+gulp.task('default', function(callback) {
     runSequence(
         'clean:ts:generated',
         'vet:ts:tslint',
@@ -254,7 +262,7 @@ gulp.task('default', function (callback) {
         'test',
         'bundle',
         callback
-    );    
+    );
 });
 
 /**
@@ -263,7 +271,7 @@ gulp.task('default', function (callback) {
  */
 function log(msg) {
 
-    if (typeof (msg) === 'object') {
+    if (typeof(msg) === 'object') {
         for (var item in msg) {
             if (msg.hasOwnProperty(item)) {
                 $.util.log($.util.colors.blue(msg[item]));
@@ -273,6 +281,3 @@ function log(msg) {
         $.util.log($.util.colors.blue(msg));
     }
 }
-
-
-

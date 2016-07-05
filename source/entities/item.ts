@@ -1,13 +1,16 @@
 
 import * as awayjs from "awayjs-full";
+import DisplayEvent from "./../events/DisplayEvent";
+import Point from "./../geom/point";
 
 const MOUSE_OVER: string = awayjs.MouseEvent.MOUSE_OVER;
 const MOUSE_OUT: string = awayjs.MouseEvent.MOUSE_OUT;
+const CLICK: string = awayjs.MouseEvent.CLICK;
 
 class Item extends awayjs.DisplayObjectContainer {
 
-    public static WIDTH: number = 100;
-    public static DEPTH: number = 100;
+    private static WIDTH: number = 20;
+    private static DEPTH: number = 20;
 
     private static overPreFlab: awayjs.PrimitiveCubePrefab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x98AFC7), "triangle", Item.WIDTH, 10, Item.DEPTH);
     private static outPreFlab: awayjs.PrimitiveCubePrefab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0xEEEEEE), "triangle", Item.WIDTH, 10, Item.DEPTH);
@@ -19,9 +22,29 @@ class Item extends awayjs.DisplayObjectContainer {
     private _active: awayjs.DisplayObject;
     private _activated: boolean = false;
 
-    constructor() {
+    private position: Point;
+
+    private static _dispatcher: awayjs.IEventDispatcher;
+
+    public static get dispatcher(): awayjs.IEventDispatcher {
+        if (Item._dispatcher === undefined) {
+            Item._dispatcher = new awayjs.EventDispatcher();
+        }
+        return Item._dispatcher;
+    }
+
+    constructor(xPosition: number, yPosition: number) {
         super();
         this.init();
+        this.position = new Point(xPosition, yPosition);
+    }
+
+    public static initItemSize (itemWidth: number, itemDepth: number): void {
+          Item.WIDTH = itemWidth;
+          Item.DEPTH = itemDepth;
+          Item.overPreFlab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x98AFC7), "triangle", itemWidth, 10, itemDepth);
+          Item.outPreFlab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0xEEEEEE), "triangle", itemWidth, 10, itemDepth);
+          Item.activePreFlab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x151B54), "triangle", itemWidth, 10, itemDepth);
     }
 
     private init(): void {
@@ -54,6 +77,7 @@ class Item extends awayjs.DisplayObjectContainer {
         if (this.isActive()) {
             this.deactivate();
         } else {
+            Item.dispatcher.dispatchEvent(new DisplayEvent(DisplayEvent.ITEM_CLICK, this.position));
             this.activate();
         }
     };
@@ -63,7 +87,6 @@ class Item extends awayjs.DisplayObjectContainer {
             return;
         }
         // (<Mesh> event.object).material = this._mouseOverMaterial;
-        console.log("mouseover");
         this._over.visible = true;
         this._out.visible = false;
 
@@ -74,7 +97,6 @@ class Item extends awayjs.DisplayObjectContainer {
         if (this._activated) {
             return;
         }
-        console.log("mouseout");
         this._over.visible = false;
         this._out.visible = true;
     };
@@ -86,11 +108,18 @@ class Item extends awayjs.DisplayObjectContainer {
         this._active.visible = true;
     }
 
-    public deactivate () {
+    public deactivate (overFlag: boolean = true) {
         this._activated = false;
-        this._over.visible = true;
-        this._out.visible = false;
+        if (overFlag) {
+            this._over.visible = true;
+            this._out.visible = false;
+        } else {
+            this._over.visible = false;
+            this._out.visible = true;
+        }
         this._active.visible = false;
+
+        
     }
 
     public isActive(): boolean {
