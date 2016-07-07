@@ -4,6 +4,8 @@ import Item from "./item";
 import DisplayEvent from "./../events/DisplayEvent";
 import Point from "./../geom/point";
 import Bresenham from "./../algorithm/bresenham";
+import CMYK from "./../algorithm/cmyk";
+import FieldMatrix from "./../data/fieldMatrix";
 
 
 class Field extends awayjs.DisplayObjectContainer {
@@ -16,12 +18,15 @@ class Field extends awayjs.DisplayObjectContainer {
     private lastClickedItemPosition: Point;
 
     private static bresenham: Bresenham = new Bresenham();
+    private static cmyk: CMYK = new CMYK();
 
     private items: Item[][];
     private positions: Point[];
 
     private rows: number;
     private lines: number;
+
+    private matrix: number[][];
 
     constructor() {
         super();
@@ -35,6 +40,7 @@ class Field extends awayjs.DisplayObjectContainer {
 
         this.lines = lines;
         this.rows = rows;
+        this.matrix = FieldMatrix.getMatrix(rows, lines);
 
         // this.dispatcher.removeEventListener()
         this.dispatcher.addEventListener(DisplayEvent.ITEM_CLICK, (event: DisplayEvent) => this.onItemClick(event));
@@ -68,7 +74,6 @@ class Field extends awayjs.DisplayObjectContainer {
                 this.item = new Item(i, j);
                 this.item.x = xPosition;
                 this.item.z = zPosition;
-                console.log(xPosition, zPosition);
                 xPosition += itemWidth;
                 this.items[i][j] = this.item;
                 this.addChild(this.item);
@@ -84,6 +89,7 @@ class Field extends awayjs.DisplayObjectContainer {
                 let xPosition: number = this.positions[i].x;
                 let yPosition: number = this.positions[i].y;
                 this.item = this.items[xPosition][yPosition];
+                this.matrix[xPosition][yPosition] = FieldMatrix.FULL;
                 this.item.activate();
             }
         }
@@ -94,6 +100,7 @@ class Field extends awayjs.DisplayObjectContainer {
          for (let i: number = 0; i < this.rows; i++) {
              for (let j: number = 0; j < this.lines; j ++) {
                 this.item = this.items[i][j];
+                this.matrix[i][j] = FieldMatrix.EMPTY;
                 this.item.deactivate(false);
             }
         }
@@ -104,10 +111,30 @@ class Field extends awayjs.DisplayObjectContainer {
     }
 
     private onItemClick(event: DisplayEvent): void {
-        if (this.shiftPressed || this.ctrlPressed) {
-            this.drawLine(event.point);
+        let point: Point = event.point;
+        let item: Item = this.items[point.x][point.y];
+        if (item.isActive()) {
+            if (this.ctrlPressed) {
+                // work with cmyk algorithm
+                let contrur: Point[] = Field.cmyk.getStream(point, this.matrix);
+                if (contrur !== undefined) {
+                    console.log(contrur);
+                }
+                //console.log ("Work with CMYK algorithm");
+            } else {
+                this.matrix[point.x][point.y] = FieldMatrix.EMPTY;
+                item.deactivate();
+            }
+        } else {
+            if (this.shiftPressed) {
+                this.drawLine(event.point);
+            }
+            this.matrix[point.x][point.y] = FieldMatrix.FULL;
+            item.activate();
+            this.lastClickedItemPosition = event.point;
         }
-        this.lastClickedItemPosition = event.point;
+
+
     }
 
     public updateKeys (shiftPressed: boolean, ctrlPressed: boolean): void {

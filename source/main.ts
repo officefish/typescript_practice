@@ -108,7 +108,7 @@ class Away3D {
 
         this._field = new Field();
             // eval("this._item.material = new awayjs.BasicMaterial().style.color = 0xFF0000");
-        this._field.initItems(20, 5, 20, 50, 50);
+        this._field.initItems(40, 5, 40, 20, 20);
         this._ground.addChild(this._field);
 
         // let item2: awayjs.DisplayObject = <awayjs.DisplayObject> this._cubePreflab.getNewObject();

@@ -74,12 +74,12 @@ class Item extends awayjs.DisplayObjectContainer {
     }
 
      private onClick(event: awayjs.MouseEvent) {
-        if (this.isActive()) {
-            this.deactivate();
-        } else {
+        // if (this.isActive()) {
+            // this.deactivate();
+        // } else {
             Item.dispatcher.dispatchEvent(new DisplayEvent(DisplayEvent.ITEM_CLICK, this.position));
-            this.activate();
-        }
+            // this.activate();
+        // }
     };
 
     private onMouseOver(event: awayjs.MouseEvent) {
@@ -118,12 +118,17 @@ class Item extends awayjs.DisplayObjectContainer {
             this._out.visible = true;
         }
         this._active.visible = false;
-
-        
     }
 
     public isActive(): boolean {
         return this._activated;
+    }
+
+    public select(): void {
+        this._activated = true;
+        this._over.visible = true;
+        this._out.visible = false;
+        this._active.visible = false;
     }
 
 
