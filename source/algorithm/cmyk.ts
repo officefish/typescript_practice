@@ -40,23 +40,29 @@ class StreamNode {
     }
 
     // register channel status, if it is a connection node or entry node several channels can be marked
-    public registerChannel (channel: number): void {
+    public registerChannel (channel: number): boolean {
+        let response: boolean = true;
         switch (channel) {
             case StreamNode.BLACK:
+                response = this.black;
                 this.black = true;
                 break;
             case StreamNode.CYAN:
+                response = this.cyan;
                 this.cyan = true;
                 break;
             case StreamNode.YELLOW:
+                response = this.yellow;
                 this.yellow = true;
                 break;
             case StreamNode.MAGENTA:
+                response = this.magenta;
                 this.magenta = true;
                 break;
             default:
                 break;
         }
+        return !response;
     }
 
     // check if it is a native or foreign channel
@@ -84,9 +90,6 @@ class CMYK  {
     // matrix of stream nodes
     private nodes: StreamNode[][];
 
-    // start point fo analize
-    private sourcePoint: Point;
-
     // status of contrur, if we find connection, we will register it
     private connection: boolean = false;
 
@@ -94,13 +97,10 @@ class CMYK  {
      * @source:Point - start point for analyze
      * @matrix:number [][] - matrix of points and there states
      */
-    public getStream (source: Point, matrix: number[][]): Point[] {
-
-        // register sourcePoint 
-        this.sourcePoint = source;
+    public getContour (entry: Point, matrix: number[][]): Point[] {
 
         // list of all points of cursor
-        let responseStream: Point[] = [source];
+        let responseStream: Point[] = [entry];
 
         // no connections, contur is not closed at the moment
         this.connection = false;
@@ -109,13 +109,13 @@ class CMYK  {
         this.syncMatrixes(matrix);
 
         // create a node for source point
-        let sourceNode: StreamNode = new StreamNode(source, 0, true);
+        let sourceNode: StreamNode = new StreamNode(entry, 0, true);
 
         // register node in matrix of nodes
-        this.nodes[source.x][source.y] = sourceNode;
+        this.nodes[entry.x][entry.y] = sourceNode;
 
         // init nearest neighbors
-        let neighbors: StreamNode[] = this.censur(source, 0, true);
+        let neighbors: StreamNode[] = this.censur(entry, 0, true);
 
         // init loop stream
         let stream: StreamNode[] = [];
@@ -128,6 +128,8 @@ class CMYK  {
 
             // extract some node 
             sourceNode = stream.pop();
+
+            this.registerItteration(sourceNode.channel);
 
             // register point of contur
             responseStream.push(sourceNode.point);
@@ -169,15 +171,15 @@ class CMYK  {
      * @channel - actual direction of analyze 
      * @increment - channel flag, let register the start point, or point of channel direction
      */
-    private censur (source: Point, channel: number, increment: boolean = false): StreamNode[] {
+    private censur (entry: Point, channel: number, increment: boolean = false): StreamNode[] {
         let stream: StreamNode[] = [];
-        let xPosition: number = source.x - 1;
-        let yPosition: number = source.y;
+        let xPosition: number = entry.x - 1;
+        let yPosition: number = entry.y;
         let _channel: number = channel;
 
         // push left neighbor to stream if it not out of matrix border 
-        if (source.x > 0) {
-           this.pushToStream(xPosition, yPosition, stream, _channel);
+        if (entry.x > 0) {
+           this.varifyNode(xPosition, yPosition, stream, _channel);
         }
         // change chanel for start point registration 
         if (increment) {
@@ -185,29 +187,29 @@ class CMYK  {
         }
 
         // push right neighbor 
-        if (source.x < this.nodes.length - 1) {
+        if (entry.x < this.nodes.length - 1) {
             xPosition += 2;
-            this.pushToStream(xPosition, yPosition, stream, _channel);
+            this.varifyNode(xPosition, yPosition, stream, _channel);
         }
         if (increment) {
             _channel ++;
         }
 
         // push up neighbor
-        if (source.y > 0) {
-            xPosition = source.x;
+        if (entry.y > 0) {
+            xPosition = entry.x;
             yPosition -= 1;
-            this.pushToStream(xPosition, yPosition, stream, _channel);
+            this.varifyNode(xPosition, yPosition, stream, _channel);
         }
         if (increment) {
             _channel ++;
         }
 
         // push down neighbor
-        if (source.y < this.nodes[0].length - 1) {
-            xPosition = source.x;
+        if (entry.y < this.nodes[0].length - 1) {
+            xPosition = entry.x;
             yPosition += 2;
-            this.pushToStream(xPosition, yPosition, stream, _channel);
+            this.varifyNode(xPosition, yPosition, stream, _channel);
         }
         return stream;
     }
@@ -224,7 +226,7 @@ class CMYK  {
      * @ stream - stream of nodes which used in node
      * @ channel - actual direction channel
      */
-    private pushToStream (xPosition: number, yPosition: number, stream: StreamNode[], channel: number): void {
+    private varifyNode (xPosition: number, yPosition: number, stream: StreamNode[], channel: number): void {
         // new node
         let node: StreamNode;
 
@@ -245,21 +247,36 @@ class CMYK  {
                 // Congratulattions! We found the connection
                 this.connection = true;
                 // add one mode channel status to node
-                node.registerChannel(channel);
-
+                if (node.registerChannel(channel)) {
+                    this.registerConnectionResponse(node.point);
+                }
                 // here we also can add the point of this node to coonections list ...
                 // I don't need it, so I didn't 
             }
         } else {
             // register new node and add it in loop stream
             let point = new Point(xPosition, yPosition);
-            node = new StreamNode(point, channel);
+            let node = new StreamNode(point, channel);
             this.nodes[xPosition][yPosition] = node;
             stream.push(node);
+
+            this.registerChannelResponse(point, channel);
+
         }
+    }
+
+    protected registerChannelResponse (point: Point, channel: number): void {
+
+    }
+    protected registerConnectionResponse (point: Point): void {
+
+    }
+    protected registerItteration (channel: number): void {
+
     }
 }
 
 export default CMYK;
+
 
  

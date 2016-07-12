@@ -1,6 +1,6 @@
 
 import * as awayjs from "awayjs-full";
-import Item from "./item";
+import Item from "./Item";
 import DisplayEvent from "./../events/DisplayEvent";
 import Point from "./../geom/point";
 import Bresenham from "./../algorithm/bresenham";
@@ -8,7 +8,10 @@ import CMYK from "./../algorithm/cmyk";
 import FieldMatrix from "./../data/fieldMatrix";
 
 
+
 class Field extends awayjs.DisplayObjectContainer {
+
+   
 
     private item: Item;
     private dispatcher: awayjs.IEventDispatcher;
@@ -20,23 +23,43 @@ class Field extends awayjs.DisplayObjectContainer {
     private static bresenham: Bresenham = new Bresenham();
     private static cmyk: CMYK = new CMYK();
 
-    private items: Item[][];
+    protected items: Item[][];
     private positions: Point[];
 
     private rows: number;
     private lines: number;
 
-    private matrix: number[][];
+    private lightPicker: awayjs.StaticLightPicker;
+
+    private itemWidth: number;
+    private itemDepth: number;
+
+    protected matrix: number[][];
+
+    private _arrow: awayjs.Sprite;
+    private contour: Point[];
 
     constructor() {
         super();
         this.dispatcher = Item.dispatcher;
     }
 
+    public set arrow (value: awayjs.Sprite) {
+        this._arrow = value;
+    }
+
+    public setLightPicker(picker: awayjs.StaticLightPicker) {
+        this.lightPicker = picker;
+        Item.lightPicker = picker;
+    }
+
     public initItems(itemWidth: number, itemHeight: number, itemDepth: number, rows: number, lines?: number): void {
         if (!lines) {
             lines = rows;
         }
+
+        this.itemWidth = itemWidth;
+        this.itemDepth = itemDepth;
 
         this.lines = lines;
         this.rows = rows;
@@ -45,7 +68,7 @@ class Field extends awayjs.DisplayObjectContainer {
         // this.dispatcher.removeEventListener()
         this.dispatcher.addEventListener(DisplayEvent.ITEM_CLICK, (event: DisplayEvent) => this.onItemClick(event));
 
-        Item.initItemSize(itemWidth, itemDepth);
+        this.initItemSize(itemWidth, itemDepth);
 
         let rowsShift: number = 0;
         if (this.isEven(rows)) {
@@ -71,7 +94,7 @@ class Field extends awayjs.DisplayObjectContainer {
             }
             this.items[i] = [];
             for (let j: number = 0; j < lines; j ++) {
-                this.item = new Item(i, j);
+                this.item = this.initItem(i, j);
                 this.item.x = xPosition;
                 this.item.z = zPosition;
                 xPosition += itemWidth;
@@ -79,6 +102,15 @@ class Field extends awayjs.DisplayObjectContainer {
                 this.addChild(this.item);
             }
         }
+    }
+
+    protected initItemSize(itemWidth: number, itemDepth: number) {
+         Item.initItemSize(itemWidth, itemDepth);
+    }
+
+    protected initItem (xPosition: number, yPosition: number): Item {
+        let item: Item = new Item(xPosition, yPosition);
+        return item;
     }
 
     private drawLine(point: Point): void {
@@ -115,12 +147,7 @@ class Field extends awayjs.DisplayObjectContainer {
         let item: Item = this.items[point.x][point.y];
         if (item.isActive()) {
             if (this.ctrlPressed) {
-                // work with cmyk algorithm
-                let contrur: Point[] = Field.cmyk.getStream(point, this.matrix);
-                if (contrur !== undefined) {
-                    console.log(contrur);
-                }
-                //console.log ("Work with CMYK algorithm");
+               this.selectControur(point);
             } else {
                 this.matrix[point.x][point.y] = FieldMatrix.EMPTY;
                 item.deactivate();
@@ -135,6 +162,45 @@ class Field extends awayjs.DisplayObjectContainer {
         }
 
 
+    }
+
+    protected selectControur (point: Point): void {
+         let contour: Point[] = Field.cmyk.getContour(point, this.matrix);
+         if (contour !== undefined) {
+             this.contour = contour;
+             let position: Point;
+             for (let i: number = 0; i < contour.length; i ++) {
+                 position = contour[i];
+                 this.item = this.items[position.x][position.y];
+                 this.item.select();
+             }
+             this.item = this.items[point.x][point.y];
+             this._arrow.x = this.item.x  + this.itemWidth / 2;
+             this._arrow.y = this.item.y;
+             this._arrow.z = this.item.z + this.itemDepth / 2;
+             this.addChild(this._arrow);
+
+
+         }
+    }
+
+    public exclude (value: number) {
+         let position: Point;
+         for (let i: number = 0; i < this.contour.length; i ++) {
+             position = this.contour[i];
+             this.item = this.items[position.x][position.y];
+             this.item.exclude(value);
+        }
+    }
+
+    public fix (): void {
+         this.removeChild(this._arrow);
+         let position: Point;
+         for (let i: number = 0; i < this.contour.length; i ++) {
+             position = this.contour[i];
+             this.item = this.items[position.x][position.y];
+             this.item.activate();
+        }
     }
 
     public updateKeys (shiftPressed: boolean, ctrlPressed: boolean): void {

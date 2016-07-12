@@ -9,29 +9,60 @@ const CLICK: string = awayjs.MouseEvent.CLICK;
 
 class Item extends awayjs.DisplayObjectContainer {
 
-    private static WIDTH: number = 20;
-    private static DEPTH: number = 20;
+    protected static WIDTH: number = 20;
+    protected static DEPTH: number = 20;
 
-    private static overPreFlab: awayjs.PrimitiveCubePrefab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x98AFC7), "triangle", Item.WIDTH, 10, Item.DEPTH);
-    private static outPreFlab: awayjs.PrimitiveCubePrefab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0xEEEEEE), "triangle", Item.WIDTH, 10, Item.DEPTH);
-    private static activePreFlab: awayjs.PrimitiveCubePrefab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x151B54), "triangle", Item.WIDTH, 10, Item.DEPTH);
+    private static cubePreFlab: awayjs.PrimitiveCubePrefab;
 
+    private static _lightPicker: awayjs.StaticLightPicker;
+    public static set lightPicker(picker: awayjs.StaticLightPicker) {
+        Item.overMaterial.lightPicker = picker;
+        Item.outMaterial.lightPicker = picker;
+        Item.activeMaterial.lightPicker = picker;
+        Item.selectMaterial.lightPicker = picker;
+    }
 
-    private _over: awayjs.DisplayObject;
-    private _out: awayjs.DisplayObject;
-    private _active: awayjs.DisplayObject;
-    private _activated: boolean = false;
+    private static _overMaterial: awayjs.MethodMaterial;
+    private static get overMaterial(): awayjs.MethodMaterial {
+        if (Item._overMaterial === undefined) {
+            Item._overMaterial = new awayjs.MethodMaterial(0x98AFC7);
+        }
+        return Item._overMaterial;
+    }
+    private static _outMaterial: awayjs.MethodMaterial;
+    private static get outMaterial(): awayjs.MethodMaterial {
+        if (Item._outMaterial === undefined) {
+            Item._outMaterial = new awayjs.MethodMaterial(0xEEEEEE);
+        }
+        return Item._outMaterial;
+    }
+    private static _activeMaterial: awayjs.MethodMaterial;
+    private static get activeMaterial(): awayjs.MethodMaterial {
+        if (Item._activeMaterial === undefined) {
+            Item._activeMaterial = new awayjs.MethodMaterial(0x151B8D);
+        }
+        return Item._activeMaterial;
+    }
 
-    private position: Point;
+    private static _selectMaterial: awayjs.MethodMaterial;
+    private static get selectMaterial(): awayjs.MethodMaterial {
+        if (Item._selectMaterial === undefined) {
+            Item._selectMaterial = new awayjs.MethodMaterial(0xFF0000);
+        }
+        return Item._selectMaterial;
+    }
 
     private static _dispatcher: awayjs.IEventDispatcher;
-
     public static get dispatcher(): awayjs.IEventDispatcher {
         if (Item._dispatcher === undefined) {
             Item._dispatcher = new awayjs.EventDispatcher();
         }
         return Item._dispatcher;
     }
+
+    protected _body: awayjs.Sprite;
+    private _activated: boolean = false;
+    private position: Point;
 
     constructor(xPosition: number, yPosition: number) {
         super();
@@ -42,9 +73,7 @@ class Item extends awayjs.DisplayObjectContainer {
     public static initItemSize (itemWidth: number, itemDepth: number): void {
           Item.WIDTH = itemWidth;
           Item.DEPTH = itemDepth;
-          Item.overPreFlab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x98AFC7), "triangle", itemWidth, 10, itemDepth);
-          Item.outPreFlab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0xEEEEEE), "triangle", itemWidth, 10, itemDepth);
-          Item.activePreFlab = new awayjs.PrimitiveCubePrefab(new awayjs.MethodMaterial(0x151B54), "triangle", itemWidth, 10, itemDepth);
+          Item.cubePreFlab = new awayjs.PrimitiveCubePrefab(null, "triangle", itemWidth, 10, itemDepth);
     }
 
     private init(): void {
@@ -52,18 +81,12 @@ class Item extends awayjs.DisplayObjectContainer {
         this.initListeners();
     };
 
-    private initObjects(): void {
-        this._over = Item.overPreFlab.getNewObject();
-        this._out = Item.outPreFlab.getNewObject();
-        this._active = Item.activePreFlab.getNewObject();
-        this._over.x = this._active.x = this._out.x += Item.WIDTH / 2;
-        this._over.z = this._active.z = this._out.z += Item.DEPTH / 2;
-        this.addChild(this._active);
-        this._active.visible = false;
-        this.addChild(this._out);
-        this._over.visible = false;
-        this.addChild(this._over);
-
+    protected initObjects(): void {
+        this._body = <awayjs.Sprite> Item.cubePreFlab.getNewObject();
+        this._body.material = Item.outMaterial;
+        this._body.x += Item.WIDTH / 2;
+        this._body.z += Item.DEPTH / 2;
+        this.addChild(this._body);
     }
 
     private initListeners(): void {
@@ -74,50 +97,36 @@ class Item extends awayjs.DisplayObjectContainer {
     }
 
      private onClick(event: awayjs.MouseEvent) {
-        // if (this.isActive()) {
-            // this.deactivate();
-        // } else {
-            Item.dispatcher.dispatchEvent(new DisplayEvent(DisplayEvent.ITEM_CLICK, this.position));
-            // this.activate();
-        // }
-    };
+          Item.dispatcher.dispatchEvent(new DisplayEvent(DisplayEvent.ITEM_CLICK, this.position));
+     };
 
     private onMouseOver(event: awayjs.MouseEvent) {
         if (this._activated) {
             return;
         }
-        // (<Mesh> event.object).material = this._mouseOverMaterial;
-        this._over.visible = true;
-        this._out.visible = false;
+        this._body.material = Item.overMaterial;
 
     };
 
     private onMouseOut(event: awayjs.MouseEvent) {
-        // (<Mesh> event.object).material = this._mouseOutMaterial;
         if (this._activated) {
             return;
         }
-        this._over.visible = false;
-        this._out.visible = true;
+        this._body.material = Item.outMaterial;
     };
 
     public activate() {
         this._activated = true;
-        this._over.visible = false;
-        this._out.visible = false;
-        this._active.visible = true;
+        this._body.material = Item.activeMaterial;
     }
 
     public deactivate (overFlag: boolean = true) {
         this._activated = false;
         if (overFlag) {
-            this._over.visible = true;
-            this._out.visible = false;
+            this._body.material = Item.overMaterial;
         } else {
-            this._over.visible = false;
-            this._out.visible = true;
+           this._body.material = Item.outMaterial;
         }
-        this._active.visible = false;
     }
 
     public isActive(): boolean {
@@ -126,9 +135,12 @@ class Item extends awayjs.DisplayObjectContainer {
 
     public select(): void {
         this._activated = true;
-        this._over.visible = true;
-        this._out.visible = false;
-        this._active.visible = false;
+        this._body.material = Item.selectMaterial;
+    }
+
+    public  exclude (value: number): void {
+        this._body.height = value;
+        this._body.y = this._body.height / 2;
     }
 
 
